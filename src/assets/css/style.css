@@ -63,15 +63,29 @@ html, body, #app {
 #app {
 
   & .map-page {
+    position: relative;
     height: 100%;
 
     & .map {
       width: 100%;
-      height: calc(100vh - 160px);
+      height: calc(100vh - 112px);
       min-height: 100%;
 
+
+      /* Hide OpenLayers info text and link */
       & .ol-attribution.ol-unselectable.ol-control.ol-uncollapsible > ul {
         display: none;
+      }
+    }
+
+    & .scene-panel {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      width: 300px;
+
+      & .status {
+        text-transform: capitalize;
       }
     }
   }

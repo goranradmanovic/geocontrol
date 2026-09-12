@@ -1,10 +1,10 @@
 import {
     createRouter,
     createWebHistory,
-    type RouterRecordRaw
+    type RouteRecordRaw
 } from 'vue-router'
 
-const routes: RouterRecordRaw[] = [
+const routes: RouteRecordRaw[] = [
     {
         path: '/',
         name: 'dashboard',

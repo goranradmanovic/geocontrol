@@ -1,0 +1,91 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "scene-001",
+        "name": "Sava Agriculture",
+        "status": "ready",
+        "area": 18.4,
+        "description": "Agricultural monitoring area"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [16.88, 45.25],
+            [16.98, 45.25],
+            [16.98, 45.32],
+            [16.88, 45.32],
+            [16.88, 45.25]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "scene-002",
+        "name": "Forest Monitoring",
+        "status": "processing",
+        "area": 12.7,
+        "description": "Forest monitoring area"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [16.99, 45.27],
+            [17.08, 45.27],
+            [17.08, 45.34],
+            [16.99, 45.34],
+            [16.99, 45.27]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "scene-003",
+        "name": "Urban Detection Area",
+        "status": "ready",
+        "area": 9.8,
+        "description": "Urban monitoring area"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [16.91, 45.34],
+            [17.00, 45.34],
+            [17.00, 45.40],
+            [16.91, 45.40],
+            [16.91, 45.34]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "scene-004",
+        "name": "Urban Detection Area",
+        "status": "ready",
+        "area": 20,
+        "description": "Urban monitoring area"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [17.22, 45.12],
+            [17.23, 45.14],
+            [17.25, 45.15],
+            [17.27, 45.13],
+            [17.22, 45.12]
+        ]
+      }
+    }
+  ]
+}
