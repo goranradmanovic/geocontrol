@@ -17,13 +17,20 @@ export const vuetify = createVuetify({
         }
     },
     theme: {
-        defaultTheme: 'light',
+        defaultTheme: 'dark',
         themes: {
             light: {
                 colors: {
                     primary: '#1976D2',
                     secondary: '#424242',
                     background: '#F5F5F5',
+                }
+            },
+            dark: {
+                colors: {
+                    primary: '#1976D2',
+                    secondary: '#424242',
+                    background: '#121212',
                 }
             }
         }

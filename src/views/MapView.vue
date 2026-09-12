@@ -1,14 +1,10 @@
 <template>
-  <div>
-    <h1 class="text-h4 mb-4">
-      Map
-    </h1>
-
-    <p class="text-body-1">
-      Map will apper here.
-    </p>
+  <v-card>Satellite Map</v-card>
+  <div class="map-page">
+    <GeoMap />
   </div>
 </template>
 
 <script setup lang="ts">
+  import GeoMap from '../components/map/GeoMap.vue';
 </script>

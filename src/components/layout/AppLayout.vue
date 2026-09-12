@@ -85,5 +85,10 @@
             icon: 'mdi-upload',
             to: '/imports'
         },
+        {
+            title: 'Map',
+            icon: 'mdi-map',
+            to: '/map'
+        },
     ]
 </script>

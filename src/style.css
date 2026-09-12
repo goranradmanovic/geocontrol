@@ -59,3 +59,20 @@ html, body, #app {
   font-family: var(--sans);
   background: var(--bg);
 }
+
+#app {
+
+  & .map-page {
+    height: 100%;
+
+    & .map {
+      width: 100%;
+      height: calc(100vh - 160px);
+      min-height: 100%;
+
+      & .ol-attribution.ol-unselectable.ol-control.ol-uncollapsible > ul {
+        display: none;
+      }
+    }
+  }
+}
