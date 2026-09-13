@@ -71,7 +71,7 @@
       "type": "Feature",
       "properties": {
         "id": "scene-004",
-        "name": "Urban Detection Area",
+        "name": "Area of interest",
         "status": "ready",
         "area": 20,
         "description": "Urban monitoring area"
@@ -79,11 +79,13 @@
       "geometry": {
         "type": "Polygon",
         "coordinates": [
+          [
             [17.22, 45.12],
             [17.23, 45.14],
             [17.25, 45.15],
             [17.27, 45.13],
             [17.22, 45.12]
+          ]
         ]
       }
     }
