@@ -11,6 +11,7 @@
     import VectorLayer from 'ol/layer/Vector'
     import VectorSource from 'ol/source/Vector'
     import OSM from 'ol/source/OSM'
+    import XYZ from 'ol/source/XYZ'
     import { Fill, Stroke, Style, Circle } from 'ol/style'
     import { fromLonLat } from 'ol/proj'
     import type Feature from 'ol/Feature'
@@ -27,16 +28,38 @@
         sceneSelected: [scene: SceneProperties]
     }>()
 
-    watch(() => props.layers, (layers) => {
-        baseLayer?.setVisible(layers.baseMap)
-        baseLayer?.setOpacity(parseFloat(layers.baseMapOpacity))
+    watch(() => props.layers, (layers, oldLayers) => {
+        // 1. Update Base Layer
+        baseLayer?.setVisible(layers.baseMap.visible)
+        baseLayer?.setOpacity(parseFloat(layers.baseMap.opacity as any))
 
-        sceneLayer?.setVisible(layers.scenes)
-        scenesOpacity = parseFloat(layers.scenesOpacity)
+        // 2. Update Imagery Layer Visibility & Opacity
+        imageryLayer?.setVisible(layers.imagery.visible)
+        imageryLayer?.setOpacity(parseFloat(layers.imagery.opacity as any))
+
+        // 3. Update Imagery Source when 'type' changes
+        if (imageryLayer && layers.imagery.type) {
+            const currentUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/${layers.imagery.type}/MapServer/tile/{z}/{y}/{x}`
+            
+            // Get current source URL to avoid unnecessary recreations
+            const currentSource = imageryLayer.getSource() as XYZ
+            const urls = currentSource?.getUrls()
+
+            if (!urls || urls[0] !== currentUrl) {
+                imageryLayer.setSource(
+                    new XYZ({ url: currentUrl })
+                )
+            }
+        }
+
+        // 4. Update Scenes Layer
+        sceneLayer?.setVisible(layers.scenes.visible)
+        scenesOpacity = parseFloat(layers.scenes.opacity as any)
         sceneLayer?.changed()
 
-        detectionLayer?.setVisible(layers.detections)
-    }, { deep: true })
+        // 5. Update Detection Layer
+        detectionLayer?.setVisible(layers.detections.visible)
+    }, { deep: true } )
 
     // Variables section
     const mapElement = ref<HTMLDivElement | null>(null)
@@ -49,6 +72,7 @@
 
     let map: Map | null = null
     let baseLayer: TileLayer<OSM> | null = null
+    let imageryLayer: TileLayer<XYZ> | null = null
     let sceneLayer: VectorLayer<VectorSource> | null = null
     let detectionLayer: VectorLayer<VectorSource> | null = null
     let selectedFeature: Feature | null = null
@@ -68,6 +92,20 @@
         baseLayer.setOpacity(parseFloat(props.layers.baseMapOpacity))
         baseLayer.setZIndex(0)
 
+        // ** IMAGERY SOURCE / SATTELITE SOURCE
+        imageryLayer = new TileLayer({
+            source: new XYZ({
+                url: `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}`
+            }),
+            visible: false,
+            opacity: 0.8
+        })
+
+        imageryLayer.setVisible(props.layers.imagery)
+        imageryLayer.setZIndex(10)
+        // imageryLayer?.setOpacity(0.7) // Set opacity
+
+        // ** SCENE SOURCE
         const sceneSource = new VectorSource({
             features: new GeoJSON().readFeatures(scenesGeoJson, { featureProjection: 'EPSG:3857' })
         })
@@ -102,7 +140,7 @@
         })
         sceneLayer.setVisible(props.layers.scenes)
         sceneLayer.setOpacity(parseFloat(props.layers.scenesOpacity))
-        sceneLayer.setZIndex(10)
+        sceneLayer.setZIndex(20)
 
         // ** DETECTION SECTION **
         // Detection source
@@ -136,7 +174,7 @@
             style: detectionStyleFunction
         })
         detectionLayer.setVisible(props.layers.detections)
-        detectionLayer.setZIndex(20)
+        detectionLayer.setZIndex(30)
 
 
         // MAP INSTANCE
@@ -144,9 +182,10 @@
             new Map({
                 target: mapElement.value,
                 layers: [
-                    baseLayer,
-                    sceneLayer,
-                    detectionLayer
+                    baseLayer, // 1
+                    imageryLayer, // 2
+                    sceneLayer, // 3
+                    detectionLayer // 4
                 ],
                 view: new View({
                     center: fromLonLat([16.95, 45.25]), // Order - [longitude, latitude] | fromLonLat() performs the appropriate transformation for the map's projection. Convert long, lat - EPSG:4326 to the map projection Web Mercator EPSG:3857

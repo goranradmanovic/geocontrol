@@ -1,7 +1,6 @@
 export interface LayerState {
-    baseMap: boolean
-    baseMapOpacity: number
-    scenes: boolean
-    scenesOpacity: number
-    detections: boolean
+    baseMap: object
+    imagery: object
+    scenes: object
+    detections: object
 }

@@ -42,19 +42,31 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, watch } from 'vue'
   import type { SceneProperties } from '../types/scene'
   import GeoMap from '@/components/map/GeoMap.vue'
   import MapLayerControl from '@/components/map/MapLayerControl.vue'
 
   // Variables section
   const selectedScene = ref<SceneProperties | null>(null)
-  const layers = ref({
-    baseMap: true,
-    baseMapOpacity: 1,
-    scenes: true,
-    scenesOpacity: 0.5,
-    detections: true
+  const layers = ref<object>({
+    baseMap: {
+      visible: true,
+      opacity: 1
+    },
+    imagery: {
+      visible: false,
+      opacity: 0.7,
+      type: 'World_Imagery' // Default type - World_Imagery, secondary type World_Topo_Map
+    },
+    scenes: {
+      visible: true,
+      opacity: 0.5
+    },
+    detections: {
+      visible: true,
+      //opacity: 0.7
+    },
   })
 
   const handleSceneSelected = (scene: SceneProperties) => selectedScene.value = scene
