@@ -1,54 +1,52 @@
 <template>
   <div class="map-page">
-    <GeoMap :layers="layers" @scene-selected="handleSceneSelected" />
+    <v-card
+      class="map-draw opacity-80 d-flex flex-column ga-4"
+      elevation="4"
+    >
+        <v-card-title>Map Draw</v-card-title>
+
+        <v-card-text>
+          <div class="d-flex ga-2">
+            <v-btn prepend-icon="mdi-vector-polygon" color="primary" @click="startDrawing">Draw AOI</v-btn>
+            <v-btn prepend-icon="mdi-delete-outline" variant="outlined" @click="clearAoi">Clear AOI</v-btn>
+          </div>
+      </v-card-text>
+    </v-card>
+
+    <GeoMap
+      ref="mapRef"
+      :layers="layers"
+      @scene-selected="handleSceneSelected"
+      @aoi-selected="handleAoiSelected"
+      @aoi-cleared="handleAoiClared"  
+    />
 
     <div class="layers-control">
       <MapLayerControl v-model="layers" />
     </div>
 
-    <v-card
-      v-if="selectedScene"
-      class="scene-panel"
-      elevation="4"  
-    >
-      <v-card-title>{{ selectedScene.name }}</v-card-title>
-      <v-card-text>
-        <div>
-          <strong>ID:</strong>
-          {{ selectedScene.id }}
-        </div>
-        <div class="status">
-          <strong>Status: </strong>
-          <v-chip 
-              size="x-small"
-              variant="tonal"
-              :color="setStatusColor(selectedScene.status)"
-          >
-            <v-icon icon="mdi-circle" size="x-small" start />
-            {{ selectedScene.status }}
-          </v-chip>
-        </div>
-        <div>
-          <strong>Area:</strong>
-          {{ selectedScene.area }} km²
-        </div>
-        <div>
-          <strong>Descritpion:</strong>
-          {{ selectedScene.description }}
-        </div>
-      </v-card-text>
-    </v-card>
+    <!-- Selected AOI Card -->
+    <AoiCard v-if="selectedAoi" :selected-aoi="selectedAoi" />
+
+    <!-- Selected Scene Card -->
+    <SceneCard v-if="selectedScene" :selected-scene="selectedScene"/>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, watch } from 'vue'
+  import { ref } from 'vue'
   import type { SceneProperties } from '../types/scene'
+  import type GeoJSON from 'geojson'
   import GeoMap from '@/components/map/GeoMap.vue'
   import MapLayerControl from '@/components/map/MapLayerControl.vue'
+  import AoiCard from '../components/map/AoiCard.vue'
+  import SceneCard from '../components/map/SceneCard .vue'
 
   // Variables section
+  const mapRef = ref<InstanceType<typeof GeoMap> | null>(null)
   const selectedScene = ref<SceneProperties | null>(null)
+  const selectedAoi = ref<GeoJSON.Feature | null>(null)
   const layers = ref<object>({
     baseMap: {
       visible: true,
@@ -56,7 +54,7 @@
     },
     imagery: {
       visible: false,
-      opacity: 0.7,
+      opacity: 1,
       type: 'World_Imagery' // Default type - World_Imagery, secondary type World_Topo_Map
     },
     scenes: {
@@ -70,17 +68,17 @@
   })
 
   const handleSceneSelected = (scene: SceneProperties) => selectedScene.value = scene
+  const handleAoiSelected = (geoJson: GeoJSON.Feature) => selectedAoi.value = geoJson
 
-  const setStatusColor = (status: string) => {
-    switch(status) {
-      case 'ready':
-        return 'success'
+  function startDrawing() {
+    mapRef.value?.startDrawing()
+  }
 
-      case 'processing':
-        return 'warning'
+  function clearAoi() {
+    mapRef.value?.clearAoi()
+  }
 
-      case 'failed':
-        return 'error'
-    }
+  function handleAoiClared() {
+    selectedAoi.value = null
   }
 </script>

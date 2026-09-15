@@ -66,6 +66,22 @@ html, body, #app {
     position: relative;
     height: 100%;
 
+    & .map-draw {
+      position: absolute;
+      top: 80px;
+      left: 10px;
+      z-index: 1000;
+      max-width: 310px;
+    }
+
+    & .aoi-info {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      width: 280px;
+      z-index: 1000;
+    }
+
     & .map {
       width: 100%;
       height: calc(100vh - 112px);
@@ -91,8 +107,9 @@ html, body, #app {
 
     & .layer-control {
       position: absolute;
-      top: 64px;
+      top: 200px;
       left: 10px;
+      width: 274px;
 
       & .layer-control {
         width: 260px;

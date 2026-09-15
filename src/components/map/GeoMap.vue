@@ -7,6 +7,7 @@
     import Map from 'ol/Map'
     import View from 'ol/View'
     import GeoJSON from 'ol/format/GeoJSON'
+    import Draw from 'ol/interaction/Draw'
     import TileLayer from 'ol/layer/Tile'
     import VectorLayer from 'ol/layer/Vector'
     import VectorSource from 'ol/source/Vector'
@@ -25,41 +26,39 @@
     }>()
 
     const emit = defineEmits<{
-        sceneSelected: [scene: SceneProperties]
+        sceneSelected: [scene: SceneProperties],
+        aoiSelected: [geoJson: GeoJSON.Feature],
+        aoiCleared: []
     }>()
 
-    watch(() => props.layers, (layers, oldLayers) => {
-        // 1. Update Base Layer
-        baseLayer?.setVisible(layers.baseMap.visible)
-        baseLayer?.setOpacity(parseFloat(layers.baseMap.opacity as any))
+    watch(() => props.layers, (layers) => {
+        // 1. Base Layer
+        baseLayer?.setVisible(Boolean(layers.baseMap.visible))
+        baseLayer?.setOpacity(Number(layers.baseMap.opacity))
 
-        // 2. Update Imagery Layer Visibility & Opacity
-        imageryLayer?.setVisible(layers.imagery.visible)
-        imageryLayer?.setOpacity(parseFloat(layers.imagery.opacity as any))
+        // 2. Imagery Layer
+        imageryLayer?.setVisible(Boolean(layers.imagery.visible))
+        imageryLayer?.setOpacity(Number(layers.imagery.opacity))
 
-        // 3. Update Imagery Source when 'type' changes
+        // 3. Imagery Source URL update
         if (imageryLayer && layers.imagery.type) {
             const currentUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/${layers.imagery.type}/MapServer/tile/{z}/{y}/{x}`
-            
-            // Get current source URL to avoid unnecessary recreations
             const currentSource = imageryLayer.getSource() as XYZ
             const urls = currentSource?.getUrls()
 
             if (!urls || urls[0] !== currentUrl) {
-                imageryLayer.setSource(
-                    new XYZ({ url: currentUrl })
-                )
+                imageryLayer.setSource(new XYZ({ url: currentUrl }))
             }
         }
 
-        // 4. Update Scenes Layer
-        sceneLayer?.setVisible(layers.scenes.visible)
-        scenesOpacity = parseFloat(layers.scenes.opacity as any)
+        // 4. Scenes Layer
+        sceneLayer?.setVisible(Boolean(layers.scenes.visible))
+        scenesOpacity = Number(layers.scenes.opacity)
         sceneLayer?.changed()
 
-        // 5. Update Detection Layer
-        detectionLayer?.setVisible(layers.detections.visible)
-    }, { deep: true } )
+        // 5. Detection Layer
+        detectionLayer?.setVisible(Boolean(layers.detections.visible))
+    }, { deep: true })
 
     // Variables section
     const mapElement = ref<HTMLDivElement | null>(null)
@@ -75,9 +74,12 @@
     let imageryLayer: TileLayer<XYZ> | null = null
     let sceneLayer: VectorLayer<VectorSource> | null = null
     let detectionLayer: VectorLayer<VectorSource> | null = null
+    let aoiLayer: VectorLayer<VectorSource> | null = null
+    let aoiSource: VectorSource | null = null
+    let drawInteraction: Draw | null = null
     let selectedFeature: Feature | null = null
 
-    let scenesOpacity: number = parseFloat(props.layers.scenesOpacity)
+    let scenesOpacity: number = 0.5
     
     // Method section 
     const initMap = () => {
@@ -86,29 +88,30 @@
         // ** BASE SECTION **
         baseLayer = new TileLayer({ 
             source: new OSM(), 
-            opacity: parseFloat(props.layers.baseMapOpacity)
+            opacity: Number(props.layers.baseMap.opacity)
         })
-        baseLayer.setVisible(props.layers.baseMap)
-        baseLayer.setOpacity(parseFloat(props.layers.baseMapOpacity))
+        baseLayer.setVisible(Boolean(props.layers.baseMap.visible))
+        baseLayer.setOpacity(Number(props.layers.baseMap.opacity))
         baseLayer.setZIndex(0)
 
         // ** IMAGERY SOURCE / SATTELITE SOURCE
         imageryLayer = new TileLayer({
             source: new XYZ({
-                url: `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}`
+                url: `https://server.arcgisonline.com/ArcGIS/rest/services/${props.layers.imagery.type}/MapServer/tile/{z}/{y}/{x}`
             }),
             visible: false,
-            opacity: 0.8
+            opacity: Number(props.layers.imagery.opacity)
         })
 
-        imageryLayer.setVisible(props.layers.imagery)
+        imageryLayer.setVisible(Boolean(props.layers.imagery.visible))
         imageryLayer.setZIndex(10)
-        // imageryLayer?.setOpacity(0.7) // Set opacity
 
         // ** SCENE SOURCE
         const sceneSource = new VectorSource({
             features: new GeoJSON().readFeatures(scenesGeoJson, { featureProjection: 'EPSG:3857' })
         })
+
+        scenesOpacity = Number(props.layers.scenes.opacity)
 
         // Default scene style
         const defaultSceneStyleFunction = () => {
@@ -138,8 +141,8 @@
             source: sceneSource,
             style: defaultSceneStyleFunction
         })
-        sceneLayer.setVisible(props.layers.scenes)
-        sceneLayer.setOpacity(parseFloat(props.layers.scenesOpacity))
+        sceneLayer.setVisible(Boolean(props.layers.scenes.visible))
+        sceneLayer.setOpacity(Number(props.layers.scenes.opacity))
         sceneLayer.setZIndex(20)
 
         // ** DETECTION SECTION **
@@ -173,9 +176,24 @@
             source: detectionSource,
             style: detectionStyleFunction
         })
-        detectionLayer.setVisible(props.layers.detections)
+        detectionLayer.setVisible(Boolean(props.layers.detections.visible))
         detectionLayer.setZIndex(30)
 
+        // AOI Layer
+        aoiSource = new VectorSource()
+        aoiLayer = new VectorLayer({
+            source: aoiSource,
+            style: new Style({
+                fill: new Fill({
+                    color: 'rgba(33, 150, 243, 0.2)'
+                }),
+                stroke: new Stroke({
+                    color: '#1976d2',
+                    width: 2,
+                    lineDash: [6, 6]
+                })
+            })
+        })
 
         // MAP INSTANCE
         map = markRaw(
@@ -183,9 +201,10 @@
                 target: mapElement.value,
                 layers: [
                     baseLayer, // 1
-                    imageryLayer, // 2
-                    sceneLayer, // 3
-                    detectionLayer // 4
+                    imageryLayer, // 3
+                    sceneLayer, // 4
+                    detectionLayer, // 5
+                    aoiLayer, // 2
                 ],
                 view: new View({
                     center: fromLonLat([16.95, 45.25]), // Order - [longitude, latitude] | fromLonLat() performs the appropriate transformation for the map's projection. Convert long, lat - EPSG:4326 to the map projection Web Mercator EPSG:3857
@@ -244,6 +263,66 @@
         sceneLayer = null
         detectionLayer = null
     }
+
+    // Function for drawing API on the map
+    function startDrawing() {
+        if (!aoiSource || !map) return
+
+        aoiSource.clear()
+
+        if (drawInteraction) {
+            map.removeInteraction(drawInteraction)
+        }
+
+        // draw a polygon
+        drawInteraction = new Draw({
+            source: aoiSource,
+            type: 'Polygon'
+        })
+
+        map.addInteraction(drawInteraction)
+
+        drawInteraction.on('drawend', (event) => {
+            const feature = event.feature
+            const geometry = feature.getGeometry()
+
+            if (!geometry) return
+
+            // Projection conversion
+            const geoJson = new GeoJSON().writeFeatureObject(feature, {
+                featureProjection: 'EPSG:3857', // Web Mercator is used for the map projection
+                dataProjection: 'EPSG:4326' // GeoJSON geographic coordinates longitude/latitude
+            })
+
+            //console.log('Drawn geometry: ', geometry)
+            //console.log('GeoJSON: ', geoJson)
+
+            emit('aoiSelected', geoJson)
+
+            if (drawInteraction && map) {
+                map.removeInteraction(drawInteraction)
+                drawInteraction = null
+            }
+        })
+    }
+
+    function clearAoi() {
+        if (!aoiSource) return
+
+        aoiSource.clear()
+
+        if (drawInteraction && map) {
+            map.removeInteraction(drawInteraction)
+            drawInteraction = null
+        }
+
+        emit('aoiCleared')
+    }
+
+    defineExpose({
+        startDrawing,
+        clearAoi
+    })
 
     onMounted(() => {
         initMap()

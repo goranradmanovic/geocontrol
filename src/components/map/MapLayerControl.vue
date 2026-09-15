@@ -25,6 +25,7 @@
                             thumb-label="hover"
                             hide-details
                             prepend-icon="mdi-opacity"
+                            :disabled="model.imagery.visible"
                         />
                     </div>
 
@@ -40,15 +41,16 @@
                             thumb-label="hover"
                             hide-details
                             prepend-icon="mdi-opacity"
+                            :disabled="!model.imagery.visible"
                         />
                         <div class="d-flex align-center ga-1">
                             <v-icon icon="mdi mdi-layers" />
                             <v-btn-toggle v-model="model.imagery.type" :disabled="!model.imagery.visible">
                                 <v-btn size="small" value="World_Imagery">
-                                    Satellite
+                                    Satellite Mpa
                                 </v-btn>
                                 <v-btn size="small" value="World_Topo_Map">
-                                    Topograpy
+                                    Topograpy Map
                                 </v-btn>
                             </v-btn-toggle>
                         </div>
