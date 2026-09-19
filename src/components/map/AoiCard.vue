@@ -5,7 +5,6 @@
         <v-alert
           :color="isAreaToLarge ? 'warning' : 'success'"
           :icon="isAreaToLarge ? 'mdi mdi-alert' : 'mdi mdi-check-circle-outline'"
-          :title="isAreaToLarge ? 'Area Warning' : 'Area Success'"
           :text="isAreaToLarge ? 'AOI is too large' : 'AOI size is valid'"
         />
 

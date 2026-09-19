@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import scenes from './data/scenes.json' with { type: 'json' }
 import detections from './data/detections.json' with { type: 'json' }
+import jobs from './data/jobs.json' with { type: 'json' }
+
 
 const app = express()
 const PORT = 3001
@@ -44,6 +46,72 @@ app.get('/app/detections/:id', (req, res) => {
 
     res.json(detection)
 })
+
+// Jobs
+app.get('/api/jobs', (req, res) => {
+    res.json(jobs)
+})
+
+app.get('/api/jobs/:id', (req, res) => {
+    const job = jobs.find(item => item.id === req.params.id)
+
+    if (!job) {
+        res.status(404).json({ message: 'Job not found' })
+        return
+    }
+
+    res.json(job)
+})
+
+app.post('/api/jobs', (req, res) => {
+    const { sceneId } = req.body
+
+    if (!sceneId) {
+        res.status(400).json({ message: 'sceneId is required.' })
+        return
+    }
+
+    const now = new Date().toISOString()
+
+    const job = {
+        id: `job-${Date.now()}`,
+        sceneId,
+        status: 'queued',
+        progress: 0,
+        createdAt: now,
+        updatedAt: now
+    }
+
+    jobs.push(job)
+
+    res.status(201).json(job)
+
+    setTimeout(() => processJob(job), 1000)
+})
+
+function processJob(job: object) {
+    job.status = 'processing'
+    job.progress = 10
+    job.updatedAt = new Date().toISOString()
+
+    const interval = setInterval(() => {
+        job.progress += 15
+
+        if (job.progress >= 100) {
+            job.progress = 100
+            job.status = 'completed'
+            job.updatedAt = new Date().toISOString()
+
+            clearInterval(interval)
+            return
+        }
+
+        job.updatedAt = new Date().toISOString()
+    }, 1000)
+}
+
+
+
 
 
 app.listen(PORT, () => console.log(`Mock API running on http://localhost:${PORT}`))
