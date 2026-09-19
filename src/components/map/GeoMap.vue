@@ -15,18 +15,22 @@
     import XYZ from 'ol/source/XYZ'
     import { Fill, Stroke, Style, Circle } from 'ol/style'
     import { fromLonLat } from 'ol/proj'
-    import type Feature from 'ol/Feature'
+    import Feature from 'ol/Feature'
+    import Point from 'ol/geom/Point'
     import scenesGeoJson from '@/data/scenes.geojson?raw'
     import detectionsGeoJson from '@/data/detections.geojson?raw'
     import type { SceneProperties } from '@/types/scene'
     import type { LayerState } from '@/types/layer'
+    import type { Detection } from '@/queries/detections_schemas'
 
     const props = defineProps<{
-        layers: LayerState
+        layers: LayerState,
+        detections: Detection[]
     }>()
 
     const emit = defineEmits<{
-        sceneSelected: [scene: SceneProperties],
+        sceneSelected: [scene: SceneProperties | null],
+        detectionSelected: [detection: Detection | null]
         aoiSelected: [geoJson: GeoJSON.Feature],
         aoiCleared: []
     }>()
@@ -60,6 +64,8 @@
         detectionLayer?.setVisible(Boolean(layers.detections.visible))
     }, { deep: true })
 
+    watch(() => props.detections, () => updateDetectionFeatures(), { deep: true })
+
     // Variables section
     const mapElement = ref<HTMLDivElement | null>(null)
     const initialZoom: number = 10
@@ -76,12 +82,36 @@
     let detectionLayer: VectorLayer<VectorSource> | null = null
     let aoiLayer: VectorLayer<VectorSource> | null = null
     let aoiSource: VectorSource | null = null
+    let detectionSource: VectorSource | null = null
     let drawInteraction: Draw | null = null
     let selectedFeature: Feature | null = null
 
     let scenesOpacity: number = 0.5
+    const selectedSceneStyle = new Style({
+        fill: new Fill({
+            color: 'rgba(255, 193, 7, 0.35)'
+        }),
+        stroke: new Stroke({
+            color: '#F57C00',
+            width: 3
+        })
+    })
     
-    // Method section 
+    // Method section
+    // Default scene style
+    const defaultSceneStyleFunction = () => {
+        return new Style({
+            fill: new Fill({
+                // Dynamically evaluates scenesOpacity every time the map redraws
+                color: `rgba(33, 150, 243, ${scenesOpacity})` 
+            }),
+            stroke: new Stroke({
+                color: '#1976D2',
+                width: 2
+            })
+        })
+    }
+
     const initMap = () => {
         if (!mapElement.value) return
 
@@ -114,7 +144,7 @@
         scenesOpacity = Number(props.layers.scenes.opacity)
 
         // Default scene style
-        const defaultSceneStyleFunction = () => {
+        /*const defaultSceneStyleFunction = () => {
             return new Style({
                 fill: new Fill({
                     // Dynamically evaluates scenesOpacity every time the map redraws
@@ -125,9 +155,9 @@
                     width: 2
                 })
             })
-        }
+        }*/
 
-        const selectedSceneStyle = new Style({
+        /*const selectedSceneStyle = new Style({
             fill: new Fill({
                 color: 'rgba(255, 193, 7, 0.35)'
             }),
@@ -135,7 +165,7 @@
                 color: '#F57C00',
                 width: 3
             })
-        })
+        })*/
         
         sceneLayer = new VectorLayer({
             source: sceneSource,
@@ -147,9 +177,11 @@
 
         // ** DETECTION SECTION **
         // Detection source
-        const detectionSource = new VectorSource({
+        /*detectionSource = new VectorSource({
             features: new GeoJSON().readFeatures(detectionsGeoJson, { featureProjection: 'EPSG:3857' })
-        })
+        })*/
+
+        detectionSource = new VectorSource()
 
         // Detection style
         const detectionStyleFunction = (feature: any) => {
@@ -178,6 +210,7 @@
         })
         detectionLayer.setVisible(Boolean(props.layers.detections.visible))
         detectionLayer.setZIndex(30)
+        updateDetectionFeatures()
 
         // AOI Layer
         aoiSource = new VectorSource()
@@ -218,61 +251,123 @@
             let hit = false
 
             map?.forEachFeatureAtPixel(event.pixel, (feature) => {
-
-                if (selectedFeature) {
-                    selectedFeature.setStyle(defaultSceneStyleFunction())
-                }
-
-                selectedFeature = feature as Feature
-                selectedFeature.setStyle(selectedSceneStyle)
-
-                const properties = feature.getProperties()
-
-                if (!properties.id?.startsWith('scene-')) return
-
-                const scene: SceneProperties = {
-                    id: properties.id,
-                    name: properties.name,
-                    status: properties.status,
-                    area: properties.area,
-                    description: properties.description
-                }
-
-                emit('sceneSelected', scene)
                 hit = true
-                return true // Stop iterating after finding the first feature
+
+                const olFeature = feature as Feature
+
+                // ------------------------------------------------
+                // 1. DETECTION
+                // ------------------------------------------------
+
+                const detection = olFeature.get('detection') as Detection | undefined
+
+                if (detection) {
+                    emit('detectionSelected', detection)
+                    return true
+                }
+
+                // ------------------------------------------------
+                // 2. SCENE
+                // ------------------------------------------------
+
+                const properties = olFeature.getProperties()
+
+                if (properties.id?.startsWith('scene-')) {
+
+                    if (selectedFeature) {
+                        selectedFeature.setStyle(
+                            defaultSceneStyleFunction()
+                        )
+                    }
+
+                    selectedFeature = olFeature
+
+                    selectedFeature.setStyle(selectedSceneStyle)
+
+                    const scene: SceneProperties = {
+                        id: properties.id,
+                        name: properties.name,
+                        status: properties.status,
+                        area: properties.area,
+                        description: properties.description
+                    }
+
+                    emit('sceneSelected', scene)
+
+                    return true
+                }
+
+                // ------------------------------------------------
+                // 3. AOI
+                // ------------------------------------------------
+
+                if (olFeature.get('isAoi')) {
+
+                    const geometry = olFeature.getGeometry()
+
+                    if (!geometry) return true
+
+                    const geoJson = new GeoJSON().writeFeatureObject(
+                        olFeature,
+                        {
+                            featureProjection: 'EPSG:3857',
+                            dataProjection: 'EPSG:4326'
+                        }
+                    )
+
+                    emit('aoiSelected', geoJson)
+
+                    return true
+                }
+
+                return false
             })
 
-            // If the click lands outside any polygon feature
+            // ------------------------------------------------
+            // CLICKED EMPTY MAP AREA
+            // ------------------------------------------------
+
             if (!hit) {
                 if (selectedFeature) {
                     selectedFeature.setStyle(undefined)
                     selectedFeature = null
                 }
 
-                // Proactively emit null or a specific clear state
-                emit('sceneSelected', null) 
+                emit('sceneSelected', null)
+                emit('detectionSelected', null)
+                clearAoi()
             }
         })
     }
 
     const destroyMap = () => {
         map?.setTarget(undefined)
+
         map = null
+
         baseLayer = null
+        imageryLayer = null
         sceneLayer = null
         detectionLayer = null
+
+        aoiLayer = null
+        aoiSource = null
+        detectionSource = null
+
+        drawInteraction = null
+        selectedFeature = null
     }
 
     // Function for drawing API on the map
     function startDrawing() {
         if (!aoiSource || !map) return
 
-        aoiSource.clear()
+        // This code is only for one polygon to be drawed
+        /*aoiSource.clear()
 
         if (drawInteraction) {
             map.removeInteraction(drawInteraction)
-        }
+        }*/
 
         // draw a polygon
         drawInteraction = new Draw({
@@ -284,6 +379,7 @@
 
         drawInteraction.on('drawend', (event) => {
             const feature = event.feature
+            feature.set('isAoi', true)
             const geometry = feature.getGeometry()
 
             if (!geometry) return
@@ -293,9 +389,6 @@
                 featureProjection: 'EPSG:3857', // Web Mercator is used for the map projection
                 dataProjection: 'EPSG:4326' // GeoJSON geographic coordinates longitude/latitude
             })
-
-            //console.log('Drawn geometry: ', geometry)
-            //console.log('GeoJSON: ', geoJson)
 
             emit('aoiSelected', geoJson)
 
@@ -319,9 +412,74 @@
         emit('aoiCleared')
     }
 
+    function selectScene(sceneId: string) {
+        if (!sceneLayer || !map) return
+
+        const source = sceneLayer.getSource()
+
+        if (!source) return
+
+        const feature = source.getFeatures().find(
+            (feature) => feature.get('id') === sceneId
+        )
+
+        if (!feature) return
+
+        if (selectedFeature) {
+            selectedFeature.setStyle(defaultSceneStyleFunction())
+        }
+
+        feature.setStyle(selectedSceneStyle)
+
+        selectedFeature = feature
+
+        const geometry = feature.getGeometry()
+
+        if (!geometry) return
+
+        map.getView().fit(
+            geometry.getExtent(),
+            {
+                padding: [80, 80, 80, 80],
+                duration: 2000,
+                maxZoom: 15
+            }
+        )
+
+        emit('sceneSelected', feature.getProperties() as SceneProperties)
+    }
+
+    function updateDetectionFeatures() {
+        if (!detectionSource) return
+
+        detectionSource.clear()
+
+        const features = props.detections.map((detection) => {
+            const feature = new Feature({
+                geometry: new Point(fromLonLat(detection.coordinates))
+            })
+
+            feature.setProperties({
+                id: detection.id,
+                sceneId: detection.sceneId,
+                type: detection.type,
+                confidence: detection.confidence,
+                detection: detection
+            })
+
+            feature.set('id', detection.id)
+            feature.set('detection', detection)
+
+            return feature
+        })
+
+        detectionSource.addFeatures(features)
+    }
+
     defineExpose({
         startDrawing,
-        clearAoi
+        clearAoi,
+        selectScene
     })
 
     onMounted(() => {

@@ -8,7 +8,7 @@
         "name": "Sava Agriculture",
         "status": "ready",
         "area": 18.4,
-        "description": "Agricultural monitoring area"
+        "description": "Agricultural area near the Sava river"
       },
       "geometry": {
         "type": "Polygon",
@@ -30,7 +30,7 @@
         "name": "Forest Monitoring",
         "status": "processing",
         "area": 12.7,
-        "description": "Forest monitoring area"
+        "description": "Forest monitoring scene prepared for analysis."
       },
       "geometry": {
         "type": "Polygon",
@@ -52,7 +52,7 @@
         "name": "Urban Detection Area",
         "status": "ready",
         "area": 9.8,
-        "description": "Urban monitoring area"
+        "description": "Urban area prepared for object detection."
       },
       "geometry": {
         "type": "Polygon",
@@ -71,10 +71,10 @@
       "type": "Feature",
       "properties": {
         "id": "scene-004",
-        "name": "Area of interest",
+        "name": "City Detection Area",
         "status": "ready",
         "area": 20,
-        "description": "Urban monitoring area"
+        "description": "City area prepared for object detection."
       },
       "geometry": {
         "type": "Polygon",

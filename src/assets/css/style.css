@@ -68,7 +68,7 @@ html, body, #app {
 
     & .map-draw {
       position: absolute;
-      top: 80px;
+      top: 100px;
       left: 10px;
       z-index: 1000;
       max-width: 310px;
@@ -78,6 +78,19 @@ html, body, #app {
       position: absolute;
       right: 16px;
       bottom: 16px;
+      width: 280px;
+      z-index: 1000;
+
+      & .text-caption {
+        font-family: monospace;
+        font-size: .7rem;
+      }
+    }
+
+    & .detection-info {
+      position: absolute;
+      top: 300px;
+      right: 16px;
       width: 280px;
       z-index: 1000;
     }
@@ -96,8 +109,8 @@ html, body, #app {
 
     & .scene-panel {
       position: absolute;
-      top: 24px;
-      right: 24px;
+      top: 10px;
+      right: 10px;
       width: 300px;
 
       & .status {
@@ -107,7 +120,7 @@ html, body, #app {
 
     & .layer-control {
       position: absolute;
-      top: 200px;
+      top: 270px;
       left: 10px;
       width: 274px;
 

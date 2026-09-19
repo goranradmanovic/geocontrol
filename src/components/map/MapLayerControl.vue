@@ -45,13 +45,9 @@
                         />
                         <div class="d-flex align-center ga-1">
                             <v-icon icon="mdi mdi-layers" />
-                            <v-btn-toggle v-model="model.imagery.type" :disabled="!model.imagery.visible">
-                                <v-btn size="small" value="World_Imagery">
-                                    Satellite Mpa
-                                </v-btn>
-                                <v-btn size="small" value="World_Topo_Map">
-                                    Topograpy Map
-                                </v-btn>
+                            <v-btn-toggle v-model="model.imagery.type" :disabled="!model.imagery.visible" class="mx-auto">
+                                <v-btn value="World_Imagery" title="Satellite Map" icon="mdi-satellite-variant" size="x-large" />
+                                <v-btn value="World_Topo_Map" title="Topograpy Map" icon="mdi-map-legend" size="x-large" />
                             </v-btn-toggle>
                         </div>
                     </div>
@@ -88,6 +84,39 @@
                     density="compact"
                     hide-details
                 />
+
+                <div>
+                    <div class="text-body-small">Detections Confidence</div>
+                    <v-slider
+                        v-model="model.detections.confidence"
+                        :max="maxConfidence"
+                        :min="min"
+                        :step="step"
+                        thumb-label="hover"
+                        hide-details
+                        prepend-icon="mdi-shield-check"
+                        title="Detections Confidence"
+                    />
+                </div>
+
+                <div>
+                    <div class="text-body-small">Detections Type</div>
+                    <v-checkbox 
+                        v-model="model.detections.type"
+                        label="Buildings"
+                        density="compact"
+                        hide-details
+                        value="building"
+                    />
+
+                    <v-checkbox 
+                        v-model="model.detections.type"
+                        label="Vehicles"
+                        density="compact"
+                        hide-details
+                        value="vehicle"
+                    />
+                </div>
             </div>
         </v-card-text>
     </v-card>
@@ -100,5 +129,6 @@
     const model = defineModel<LayerState>({ required: true })
     const min = ref<number>(0)
     const max = ref<number>(1)
+    const maxConfidence = ref<number>(100)
     const step = ref<number>(0.1)
 </script>

@@ -1,4 +1,6 @@
-export type SceneStatus = 'ready' | 'processing' | 'failed'
+export { SceneStatus, SceneProperties } from '@/queries/scenes_schemas'
+
+/*export type SceneStatus = 'ready' | 'processing' | 'failed'
 
 export interface SceneProperties {
     id: string,
@@ -6,4 +8,4 @@ export interface SceneProperties {
     status: SceneStatus,
     area: number,
     description: string
-}
+}*/

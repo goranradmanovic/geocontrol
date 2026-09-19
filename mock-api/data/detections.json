@@ -1,0 +1,30 @@
+[
+  {
+    "id": "detection-001",
+    "sceneId": "scene-001",
+    "type": "building",
+    "confidence": 0.94,
+    "coordinates": [16.93, 45.28]
+  },
+  {
+    "id": "detection-002",
+    "sceneId": "scene-001",
+    "type": "vehicle",
+    "confidence": 0.87,
+    "coordinates": [16.95, 45.29]
+  },
+  {
+    "id": "detection-003",
+    "sceneId": "scene-002",
+    "type": "building",
+    "confidence": 0.91,
+    "coordinates": [17.02, 45.30]
+  },
+  {
+    "id": "detection-004",
+    "sceneId": "scene-003",
+    "type": "vehicle",
+    "confidence": 0.79,
+    "coordinates": [17.04, 45.32]
+  }
+]
