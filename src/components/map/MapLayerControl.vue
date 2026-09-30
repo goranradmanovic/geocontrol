@@ -1,10 +1,20 @@
 <template>
-    <div class="layers-control">
+    <div class="map-toolbar">
         <v-card class="layer-control opacity-80" elevation="4">
             <v-card-title>Map Settings</v-card-title>
             <v-card-text>
                 <div v-if="sceneId">
                     <h3 class="mb-1">AI Detection</h3>
+
+                    <v-btn
+                        class="mb-3 mr-2"
+                        color="primary"
+                        prepend-icon="mdi-arrow-left"
+                        variant="elevated"
+                        @click="router.push('/scenes')"
+                    >
+                        Back to scenes
+                    </v-btn>
 
                     <v-btn
                         color="primary"
@@ -21,16 +31,6 @@
 
                 <div>
                     <h3 class="mb-0 mt-0">Draw</h3>
-                    <v-btn
-                        v-if="sceneId"
-                        class="mb-3"
-                        color="primary"
-                        prepend-icon="mdi-arrow-left"
-                        variant="elevated"
-                        @click="router.push('/scenes')"
-                    >
-                        Back to scenes
-                    </v-btn>
                     
                     <div class="d-flex ga-2 mb-3">
                         <v-btn prepend-icon="mdi-vector-polygon" color="primary" @click="emit('startDrawing')">Draw AOI</v-btn>
@@ -172,8 +172,7 @@
     const emit = defineEmits(['startDrawing', 'clearAoi', 'activeJobId'])
 
     const props = defineProps<{
-        sceneId: string
-        activeJobId: number
+        sceneId: string | null
     }>()
 
     const router = useRouter()

@@ -1,40 +1,51 @@
 <template>
-    <v-card class="detection-info" elevation="4">
-        <v-card-title>Detection Details</v-card-title>
+  <v-card elevation="4" class="results-panel">
+    <v-card-title class="d-flex align-center">
+      <v-icon class="mr-2" size="x-small">mdi-target</v-icon>
+      Detection
+    </v-card-title>
 
-        <v-card-text>
-            <div class="mb-2">
-                <strong>ID:</strong>
-                {{ detection.id }}
-            </div>
+    <v-divider />
 
-            <div class="mb-2">
-                <strong>Type:</strong>
-                {{ detection.type }}
-            </div>
+    <v-card-text>
+      <div class="detail-row">
+        <strong class="label">ID:</strong>
+        <span>#{{ detection.id }}</span>
+      </div>
 
-            <div class="mb-2">
-                <strong>Confidence:</strong>
-                {{ (detection.confidence * 100).toFixed(1) }}%
-            </div>
+      <div class="detail-row">
+        <strong class="label">Type:</strong>
+        <v-chip size="small" variant="tonal">
+          <v-icon class="mr-1">{{ detection.type === 'building' ? 'mdi-office-building-outline' : 'mdi-car-outline' }}</v-icon>
+          {{ detection.type }}
+        </v-chip>
+      </div>
 
-            <div class="mb-2">
-                <strong>Scene:</strong>
-                {{ detection.sceneId }}
-            </div>
+      <div class="detail-row">
+        <strong class="label">Confidence:</strong>
+        <span>{{ Math.round(detection.confidence * 100) }}%</span>
+      </div>
 
-            <div>
-                <strong>Coordinates:</strong>
-                {{ detection.coordinates.join(', ') }}
-            </div>
-        </v-card-text>
-    </v-card>
+      <div class="detail-row">
+        <strong class="label">Scene:</strong>
+        <span>#{{ detection.sceneId }}</span>
+      </div>
+    </v-card-text>
+
+    <v-divider />
+
+    <v-card-actions>
+      <v-btn variant="text" prepend-icon="mdi-information-outline">
+        Details
+      </v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script setup lang="ts">
     import type { Detection } from '@/queries/detections_schemas'
 
     defineProps<{
-        detection: Detection
+      detection: Detection
     }>()
 </script>

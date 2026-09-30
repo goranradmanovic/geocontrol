@@ -41,7 +41,7 @@
         md="6"
         lg="4"
       >
-        <SceneCard :scene="scene" @view="viewScene" />
+        <SceneDetails :scene="scene" @view="viewScene" />
       </v-col>
     </v-row>
   </div>
@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
   import { useRouter } from 'vue-router'
-  import SceneCard from '@/components/scenes/SceneCard.vue'
+  import SceneDetails from '@/components/scenes/SceneDetails.vue'
   import { useScenesQuery } from '@/queries/scenes'
   import type { SceneProperties } from '@/types/scene'
 

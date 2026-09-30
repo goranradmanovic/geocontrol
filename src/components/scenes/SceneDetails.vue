@@ -2,17 +2,20 @@
     <v-card class="scene-panel" elevation="4">
       <v-card-item>
         <v-card-title>{{ props.scene.name }}</v-card-title>
-        <v-card-subtitle>{{ props.scene.id }}</v-card-subtitle>
+        <v-card-subtitle>#{{ props.scene.id }}</v-card-subtitle>
       </v-card-item>
       
       <v-card-text>
-        <p>{{ props.scene.description }}</p>
+        <strong>Description:</strong>
+        <p class="mt-0">{{ props.scene.description }}</p>
         <div class="mt-3">
           <strong>Area:</strong>
           {{ props.scene.area }} km²
         </div>
         <div class="status">
-          <v-chip 
+          <strong>Status:</strong>
+          <v-chip
+              class="ml-1"
               size="x-small"
               variant="tonal"
               :color="getStatusColor(props.scene.status)"
@@ -21,7 +24,7 @@
             {{ props.scene.status }}
           </v-chip>
         </div>
-        <div class="mt-3">
+        <div>
           <strong>Cloud Coverage:</strong>
           {{ props.scene.cloudCoverage }}%
         </div>
@@ -38,10 +41,10 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import { useRoute } from 'vue-router'
-  import type { SceneProperties, SceneStatus } from '../types/scene'
+  import type { SceneProperties, SceneStatus, SceneFeatureSchema } from '../types/scene'
 
   const props = defineProps<{
-    scene: SceneProperties
+    scene: SceneFeatureSchema
   }>()
 
   const emit = defineEmits<{

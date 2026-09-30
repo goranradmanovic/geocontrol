@@ -1,4 +1,4 @@
-export { SceneStatus, SceneProperties } from '@/queries/scenes_schemas'
+export { SceneStatus, SceneProperties, SceneGeos } from '@/queries/scenes_schemas'
 
 /*export type SceneStatus = 'ready' | 'processing' | 'failed'
 

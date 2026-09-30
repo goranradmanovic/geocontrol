@@ -13,6 +13,8 @@ export async function getJob(id: string): Promise<Job> {
 }
 
 export async function createJob(sceneId: string): Promise<Job> {
+    console.log('sceneid: ', sceneId)
     const response = await ApiClient.post('/jobs', { sceneId })
+    console.log('response.data: ', response.data)
     return jobsSchema.parse(response.data)
 }

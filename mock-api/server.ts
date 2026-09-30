@@ -3,6 +3,7 @@ import cors from 'cors'
 import scenes from './data/scenes.json' with { type: 'json' }
 import detections from './data/detections.json' with { type: 'json' }
 import jobs from './data/jobs.json' with { type: 'json' }
+import scenegeo from './data/scenegeo.json' with { type: 'json' }
 
 
 const app = express()
@@ -36,7 +37,7 @@ app.get('/api/detections', (req, res) => {
     res.json(detections)
 })
 
-app.get('/app/detections/:id', (req, res) => {
+app.get('/api/detections/:id', (req, res) => {
     const detection = detections.find(item => item.id === req.params.id)
 
     if (!detection) {
@@ -45,6 +46,11 @@ app.get('/app/detections/:id', (req, res) => {
     }
 
     res.json(detection)
+})
+
+// Scene geo coordinate
+app.get('/api/scenegeo', (req, res) => {
+    res.json(scenegeo)
 })
 
 // Jobs
