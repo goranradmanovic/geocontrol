@@ -1,19 +1,56 @@
-import { ref, type EmitFn } from 'vue'
+import { ref, watch, type EmitFn, type Ref } from 'vue'
 import Feature from 'ol/Feature'
 import Point from 'ol/geom/Point'
 import type VectorSource from 'ol/source/Vector'
+import type VectorLayer from 'ol/layer/Vector'
+import type WebGlVectorLayer from 'ol/layer/WebGLVector'
 import { fromLonLat } from 'ol/proj'
 import CircleStyle from 'ol/style/Circle'
 import { Fill, Stroke, Style } from 'ol/style'
 import type { Detection } from '@/queries/detections_schemas'
 
-export function useOlDetections(detectionSource: VectorSource) {
+export function useOlDetections(detectionSource: VectorSource, detectionLayer: VectorLayer | WebGlVectorLayer,  confidence: Ref<number>) {
     const selectedDetectionId = ref<string | null>(null)
     const detectionColors: Record<string, string> = {
         building: '#E53935', // Red
         vehicle: '#4CAF50', // Green
         default: '#FF9800' // Orange
     }
+
+    function setConfidenceFilter(value: number, detectionLayer: VectorLayer | WebGlVectorLayer) {
+        if (!detectionLayer) return
+
+        detectionLayer.value?.setStyle({
+            filter: [
+                '>=',
+                ['get', 'confidence'],
+                value
+            ],
+
+            'circle-radius': [
+                'interpolate',
+                ['linear'],
+                ['get', 'confidence'],
+                0, 5,
+                1, 15
+            ],
+
+            'circle.fill-color': [
+                'match',
+                ['get', 'type'],
+                'building', '#e53935',
+                'vehicle', '#43a047',
+                '#ff9800' // Default color
+            ],
+
+            'circle-strok-color': '#ffffff',
+            'circle-strok-width': 2
+        })
+    }
+
+    watch(confidence, value => {
+        setConfidenceFilter(value, detectionLayer)
+    }, { immediate: true })
 
     const selectedStyle = new Style({
         image: new CircleStyle({
@@ -119,8 +156,10 @@ export function useOlDetections(detectionSource: VectorSource) {
             const color = getDetectionColor(detection.type)
 
             feature.setStyle(createDefaultStyle(color))
-            //feature.set('id', detection.id)
-            //feature.set('detection', detection)
+            feature.set('id', detection.id)
+            feature.set('detection', detection)
+            feature.set('type', detection.type)
+            feature.set('confidence', detection.confidence)
 
             return feature
         })
@@ -180,6 +219,7 @@ export function useOlDetections(detectionSource: VectorSource) {
         clearSelection,
         getDetectionFeature,
         updateDetectionFeatures,
-        detectionHandleClick
+        detectionHandleClick,
+        setConfidenceFilter
     }
 }

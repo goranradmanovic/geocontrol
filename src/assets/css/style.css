@@ -71,6 +71,16 @@ html, body, #app {
     padding: 0 12px;
   }
 
+  & .scene-header {
+    min-width: 320px;
+  }
+
+  & .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
   & .status-item {
     display: flex;
     align-items: center;
@@ -80,6 +90,11 @@ html, body, #app {
   & .app-content {
     height: calc(100vh - 96px);
     overflow: hidden;
+
+    & .dashboard-view {
+      height: 100%;
+      overflow-y: auto;
+    }
   }
 
   & .map-workspace {
@@ -110,10 +125,6 @@ html, body, #app {
         align-items: center;
         gap: 4px;
         margin-top: 6px;
-
-        & .label {
-
-        }
       }
     }
 

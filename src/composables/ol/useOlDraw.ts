@@ -7,6 +7,7 @@ import GeoJSON from 'ol/format/GeoJSON'
 export function useOlDraw(map: Ref<Map | null>, aoiSource: VectorSource) {
     const isDrawing = ref<boolean>(false)
     let drawInteraction: Draw | null = null
+    const drawnGeomerty = ref<GeoJSON.Geometry | null>(null)
 
     function startDrawing(emit: EmitFn) {
         if (!map.value) return
@@ -39,6 +40,8 @@ export function useOlDraw(map: Ref<Map | null>, aoiSource: VectorSource) {
 
             console.log('AOI GeoJSON: ', geometry)
             
+            drawnGeomerty.value = geometry
+
             emit('aoiSelected', geometry)
 
             isDrawing.value = false
@@ -76,6 +79,7 @@ export function useOlDraw(map: Ref<Map | null>, aoiSource: VectorSource) {
 
     return {
         isDrawing,
+        drawnGeomerty,
         startDrawing,
         stopDrawing,
         clearAoi

@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-    import { onMounted, ref, watch } from 'vue'
+    import { onMounted, ref, watch, toRef } from 'vue'
     import type { Detection } from '@/queries/detections_schemas'
 
     // Types
@@ -24,7 +24,8 @@
         detections: Detection[],
         layers: LayerState,
         features: SceneGeos,
-        sceneId: string
+        sceneId: string,
+        detectionConfidence: number
     }>()
 
     const emit = defineEmits<{
@@ -80,6 +81,7 @@
 
         // 5. Detection Layer
         setLayerVisibility(detectionLayer, Boolean(layers.detections.visible))
+        setLayerVisibility(detectionPulseLayer, Boolean(layers.detections.visible))
     }, { deep: true })
 
     watch(() => props.sceneId, (sceneId) => {
@@ -98,14 +100,15 @@
         sceneLayer,
         sceneSource,
         detectionLayer,
+        detectionPulseLayer,
         detectionSource,
         aoiLayer,
         aoiSource,
         setLayerVisibility,
-        setLayerOpacity,
+        setLayerOpacity
     } = useOlLayers()
 
-    const { setDetections, selectDetection, updateDetectionFeatures, detectionHandleClick } = useOlDetections(detectionSource)
+    const { setDetections, selectDetection, updateDetectionFeatures, detectionHandleClick } = useOlDetections(detectionSource, detectionLayer, toRef(props, 'detectionConfidence'))
 
     const { startDrawing, clearAoi, isDrawing } = useOlDraw(map, aoiSource)
 
@@ -140,6 +143,7 @@
         olMap.addLayer(baseLayer)
         olMap.addLayer(imageryLayer)
         olMap.addLayer(sceneLayer)
+        olMap.addLayer(detectionPulseLayer)
         olMap.addLayer(detectionLayer)
         olMap.addLayer(aoiLayer)
 

@@ -164,10 +164,11 @@
 </template>
 
 <script setup lang="ts">
-    import { ref } from 'vue'
+    import { ref,watch } from 'vue'
     import { useRouter } from 'vue-router'
     import type { LayerState } from '@/types/layer'
     import { useCreateJobMutation } from '@/queries/jobs'
+    import { imageryOpacity, imageryVisible, detectionConfidence } from '@/state/appState'
 
     const emit = defineEmits(['startDrawing', 'clearAoi', 'activeJobId'])
 
@@ -183,6 +184,12 @@
     const max = ref<number>(1)
     const maxConfidence = ref<number>(100)
     const step = ref<number>(0.1)
+    
+    watch(model.value, (newVal) => {
+        imageryOpacity.value = newVal.imagery.opacity
+        imageryVisible.value = newVal.imagery.visible
+        detectionConfidence.value = Number((newVal.detections.confidence / 100).toFixed(2))
+    }, { deep: true })
 
     function startDetection() {
         if (!props.sceneId) return

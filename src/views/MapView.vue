@@ -12,6 +12,7 @@
         :detections="mapDetections ?? []"
         :features="sceneFeatures || []"
         :scene-id="sceneId ?? ''"
+        :detection-confidence="detectionConfidence"
         @scene-selected="handleSceneSelected"
         @aoi-selected="handleAoiSelected"
         @detection-selected="handleDetectionSelected"
@@ -19,7 +20,7 @@
 
       <MapLayerControl
         v-model="layers"
-        :scene-id="sceneId"
+        :scene-id="sceneId ?? ''"
         @start-drawing="handleStartDrawing"
         @clear-aoi="handleClearAoi"
         @activeJobId="handleActveJobId"
@@ -60,6 +61,7 @@
   import { useDetectionsQuery } from '@/queries/detections'
   import { useActiveJobQuery } from '@/queries/jobs'
   import { useScenegeoQuery, useScenesQuery, useSceneFeaturesQuery } from '@/queries/scenes'
+  import { useSceneContext } from '@/composables/useSceneContext'
 
   // Components
   import ActiveJobDetails from '@/components/results/ActiveJobDetails.vue'
@@ -69,34 +71,10 @@
   import DetectionDetails from '@/components/results/DetectionDetails.vue'
   import SceneDetails from '@/components/scenes/SceneDetails.vue'
 
-  import { activeJobId } from '@/state/appState'
+  import { activeJobId, activeAoi, detectionConfidence } from '@/state/appState'
 
   // Variables section
   const route = useRoute()
-
-  const {
-    data: detections,
-    isLoading: detectionsLoading,
-    isError: detectionsError
-  } = useDetectionsQuery()
-
-  /*const {
-    data: scenegeo,
-    isLoading: scenegeoLoading,
-    isError: scenegeoError
-  } = useScenegeoQuery()
-
-  const {
-    data: scenesProp,
-    isLoading: scenesPropLoading,
-    isError: scenesPropError
-  } = useScenesQuery()*/
-
-  const {
-    data: sceneFeatures,
-    isLoading: sceneFeaturesLoading,
-    isError: sceneFeaturesError
-  } = useSceneFeaturesQuery()
 
   //const activeJobId = ref<string | null>()
   const mapRef = ref<InstanceType<typeof GeoMap> | null>(null)
@@ -154,13 +132,51 @@
     })
   })
 
+  const {
+    data: detections,
+    isLoading: detectionsLoading,
+    isError: detectionsError
+  } = useDetectionsQuery()
+
+  /*const {
+    data: scenegeo,
+    isLoading: scenegeoLoading,
+    isError: scenegeoError
+  } = useScenegeoQuery()
+
+  const {
+    data: scenesProp,
+    isLoading: scenesPropLoading,
+    isError: scenesPropError
+  } = useScenesQuery()*/
+
+  const {
+    data: sceneFeatures,
+    isLoading: sceneFeaturesLoading,
+    isError: sceneFeaturesError
+  } = useSceneFeaturesQuery()
+
+  /*const {
+    sceneId: sceneContextId,
+    scene: sceneContext,
+    isLoading: isLoadingContext,
+    isError: isErrorContext
+  } = useSceneContext(sceneId.value)*/
+
   // Fucntions
-  const handleStartDrawing = () => mapRef.value?.startDrawing()
-  const handleActveJobId = (payload: string) => {
-    console.log('payload: - ', payload)
-    activeJobId.value = payload
-    console.log('activeJobId.value: - ', activeJobId.value)
+  const handleStartDrawing = () => {
+    mapRef.value?.startDrawing()
+    const geometry = mapRef.value?.drawnGeomerty
+
+    const info = calculateAoiInfo(geometry)
+
+    activeAoi.value = {
+      sceneId: sceneId.value,
+      geometry,
+      areaKm2: info.areaKm2
+    }
   }
+  const handleActveJobId = (payload: string) => activeJobId.value = payload
   const handleDetectionSelected = (detection: Detection) => selectedDetection.value = detection
   const handleSceneSelected = (scene: SceneProperties) => selectedScene.value = scene
   const handleAoiSelected = (geoJson: GeoJSON.Feature) => {

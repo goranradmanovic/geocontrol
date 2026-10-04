@@ -60,7 +60,6 @@
         return typeof route.params.id === 'string' ? route.params.id : null
     })
 
-
     const {
         data: scene,
         isLoading,
